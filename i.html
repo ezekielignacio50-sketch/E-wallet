@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Wallet</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+body { background: linear-gradient(to bottom, #f0f4ff, #d9e4ff); color: #333; }
+.center { height:100vh; display:flex; justify-content:center; align-items:center; }
+.card { background:white; padding:30px; border-radius:20px; width:350px; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.15); transition:0.3s; }
+.card:hover { transform: translateY(-3px); }
+input { width:90%; padding:12px; margin:10px 0; border-radius:12px; border:1px solid #ccc; font-size:16px; }
+button { width:100%; padding:12px; font-size:16px; border:none; border-radius:12px; cursor:pointer; transition:0.3s; }
+button:hover { opacity:0.9; }
+.link { margin-top:10px; color:#0472f4; cursor:pointer; display:block; }
+.hidden { display:none; }
+.shake { animation: shake 0.3s ease; }
+@keyframes shake { 0%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);} }
+.eye { width:90%; margin:auto; position:relative; }
+.eye input { width:100%; padding-right:40px; }
+.eye span { position:absolute; right:10px; top:12px; cursor:pointer; color:#666; }
+#dashboard { padding:20px; }
+.header { background: linear-gradient(to right, #4c8cff, #1e3ed6); padding:25px; color:white; border-radius:0 0 25px 25px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+.header h2 { font-size:26px; margin-bottom:5px; }
+.header p { font-size:16px; opacity:0.85; }
+.balance-card { background:white; padding:25px; margin-top:30px; border-radius:20px; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.15); transition:0.3s; }
+.balance-card h3 { color:#0472f4; font-size:28px; margin-top:10px; }
+.services { margin-top:25px; display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+.service-btn { background:white; padding:18px; text-align:center; border-radius:15px; font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,0.1); cursor:pointer; transition:0.3s; }
+.service-btn:hover { background: #f0f5ff; transform: translateY(-2px); }
+#dashboardContent { margin-top:25px; min-height:150px; }
+.transactions { margin-top:25px; }
+.transaction-item { background:white; padding:12px; margin-bottom:10px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+.logout-btn { background:#ff4d4d; margin-top:20px; transition:0.3s; }
+.logout-btn:hover { background:#e60000; }
+.modal-bg { position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; visibility:hidden; }
+.modal-bg.show { visibility:visible; }
+.modal-box { background:white; padding:20px; width:300px; border-radius:20px; text-align:center; animation:pop 0.25s ease; }
+@keyframes pop { from { transform: scale(0.7); } to { transform: scale(1); } }
+input[type=number] { -mozappearance:textfield; }
+input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="center" id="loginPage">
+  <div class="card">
+    <h2>Login</h2>
+    <input type="text" id="loginUser" placeholder="Username">
+    <div class="eye">
+      <input type="password" id="loginPass" placeholder="Password">
+      <span onclick="toggleLoginPass()">👁</span>
+    </div>
+    <button onclick="login()" style="background:#4c8cff;">Login</button>
+    <p class="success" id="signupSuccess"></p>
+    <p class="link" onclick="showSignup()">Create an account</p>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div class="center hidden" id="signupPage">
+  <div class="card">
+    <h2>Create Account</h2>
+    <input type="text" id="newUser" placeholder="Create username">
+    <div class="eye">
+      <input type="password" id="newPass" placeholder="Create password">
+      <span onclick="toggleSignupPass()">👁</span>
+    </div>
+    <button onclick="signup()" style="background:#1e3ed6;">Sign Up</button>
+    <p class="error" id="signupError"></p>
+    <p class="link" onclick="showLogin()">Back to login</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="hidden" id="dashboard">
+  <div class="header">
+    <h2 id="displayUser">Hi!</h2>
+    <p>Welcome to your G-Wallet</p>
+  </div>
+
+  <div class="balance-card">
+    <p>Available Balance</p>
+    <h3 id="balanceText">₱500,000.00</h3>
+  </div>
+
+  <div class="services">
+    <div class="service-btn" onclick="showPage('send')">Send Money</div>
+    <div class="service-btn" onclick="showPage('cashin')">Cash In</div>
+    <div class="service-btn" onclick="showPage('bills')">Pay Bills</div>
+    <div class="service-btn" onclick="showPage('load')">Load</div>
+    <div class="service-btn" onclick="showPage('bank')">Bank Transfer</div>
+    <div class="service-btn" onclick="showPage('qr')">QR Payment</div>
+  </div>
+
+  <div id="dashboardContent">
+    <h3>Welcome to your G-Wallet!</h3>
+    <p>Choose an action from above.</p>
+  </div>
+
+  <div class="transactions">
+    <h3>Recent Transactions</h3>
+    <div id="transList"></div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<!-- MODAL -->
+<div id="popup" class="modal-bg">
+  <div class="modal-box">
+    <h3 id="popupMsg"></h3>
+    <button onclick="closePopup()" style="margin-top:15px;">OK</button>
+  </div>
+</div>
+
+<!-- QRCode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let balance = JSON.parse(localStorage.getItem("balance")) || {};
+let transactions = JSON.parse(localStorage.getItem("transactions")) || {};
+
+function showSignup(){loginPage.classList.add("hidden"); signupPage.classList.remove("hidden");}
+function showLogin(){signupPage.classList.add("hidden"); loginPage.classList.remove("hidden");}
+function signup(){
+  let u=newUser.value,p=newPass.value;
+  if(!u||!p)return showPopup("Please fill all fields.");
+  if(users.some(x=>x.username===u))return showPopup("Username already taken.");
+  users.push({username:u,password:p});
+  balance[u]=0; transactions[u]=[];
+  localStorage.setItem("users",JSON.stringify(users));
+  localStorage.setItem("balance",JSON.stringify(balance));
+  localStorage.setItem("transactions",JSON.stringify(transactions));
+  signupSuccess.textContent="✔ Account created successfully!";
+  showLogin();
+}
+function login(){
+  let u=loginUser.value,p=loginPass.value;
+  let card=document.querySelector("#loginPage .card");
+  const user=users.find(x=>x.username===u);
+  if(!user){shake(card); return showPopup("Please create an account first.");}
+  if(user.password!==p){shake(card); return showPopup("Incorrect password.");}
+  localStorage.setItem("loggedInUser",u); showDashboard();
+}
+function shake(el){el.classList.add("shake"); setTimeout(()=>el.classList.remove("shake"),400);}
+function toggleLoginPass(){loginPass.type=loginPass.type==="password"?"text":"password";}
+function toggleSignupPass(){newPass.type=newPass.type==="password"?"text":"password";}
+function showDashboard(){
+  let user=localStorage.getItem("loggedInUser");
+  if(!user) return showLogin();
+  loginPage.classList.add("hidden");
+  signupPage.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+  displayUser.textContent="Hi, "+user+"!";
+  balanceText.textContent="₱"+balance[user].toFixed(2);
+  renderTransactions(); showPage('home');
+}
+function showPopup(msg){popupMsg.textContent=msg; popup.classList.add("show");}
+function closePopup(){popup.classList.remove("show");}
+function saveAll(){localStorage.setItem("balance",JSON.stringify(balance)); localStorage.setItem("transactions",JSON.stringify(transactions));}
+function logout(){localStorage.removeItem("loggedInUser"); dashboard.classList.add("hidden"); showLogin();}
+function renderTransactions(){
+  let user=localStorage.getItem("loggedInUser");
+  transList.innerHTML="";
+  transactions[user].slice().reverse().forEach(t=>{
+    let div=document.createElement("div");
+    div.className="transaction-item"; div.textContent=t;
+    transList.appendChild(div);
+  });
+}
+function showPage(page){
+  let user=localStorage.getItem("loggedInUser");
+  if(!user){showPopup("Please login first."); return;}
+  let content=document.getElementById("dashboardContent");
+  switch(page){
+    case "send": content.innerHTML=`<h3>Send Money</h3><button onclick="sendMoney(); showPage('home')">Proceed</button><button onclick="showPage('home')">Back</button>`; break;
+    case "cashin": content.innerHTML=`<h3>Cash In</h3><button onclick="cashIn(); showPage('home')">Proceed</button><button onclick="showPage('home')">Back</button>`; break;
+    case "bills": content.innerHTML=`<h3>Pay Bills</h3><button onclick="payBills(); showPage('home')">Proceed</button><button onclick="showPage('home')">Back</button>`; break;
+    case "load": content.innerHTML=`<h3>Load</h3><button onclick="loadMobile(); showPage('home')">Proceed</button><button onclick="showPage('home')">Back</button>`; break;
+    case "bank": content.innerHTML=`<h3>Bank Transfer</h3><button onclick="bankTransfer(); showPage('home')">Proceed</button><button onclick="showPage('home')">Back</button>`; break;
+    case "qr": content.innerHTML = `
+      <h3>QR Payment</h3>
+      <p>Enter amount:</p>
+      <input type="number" id="qrAmount" placeholder="₱0.00">
+      <button onclick="generateQR()">Generate QR</button>
+      <div id="qrCode" style="margin-top:20px;"></div>
+      <button onclick="showPage('home')">Back</button>
+    `; break;
+    default: content.innerHTML=`<h3>Welcome to your G-Wallet!</h3><p>Choose an action from above.</p>`;
+  }
+}
+function sendMoney(){let to=prompt("Receiver name:"); if(!to)return; let amount=prompt("Amount:"); if(!amount||isNaN(amount)) return; let user=localStorage.getItem("loggedInUser"); if(balance[user]<amount) return showPopup("Insufficient balance."); balance[user]-=Number(amount); transactions[user].push("Sent ₱"+amount+" to "+to); saveAll(); showDashboard();}
+function cashIn(){let amount=prompt("Cash-in amount:"); if(!amount||isNaN(amount)) return; let user=localStorage.getItem("loggedInUser"); balance[user]+=Number(amount); transactions[user].push("Cash-In ₱"+amount); saveAll(); showDashboard();}
+function payBills(){let biller=prompt("Biller name:"); if(!biller) return; let amount=prompt("Amount to pay:"); if(!amount||isNaN(amount)) return; let user=localStorage.getItem("loggedInUser"); if(balance[user]<amount) return showPopup("Insufficient balance."); balance[user]-=Number(amount); transactions[user].push("Paid "+biller+" — ₱"+amount); saveAll(); showDashboard();}
+function loadMobile(){let number=prompt("Mobile number (11 digits):"); if(!number||number.length!==11) return showPopup("Invalid number."); let amount=prompt("Load amount:"); if(!amount||isNaN(amount)) return; let user=localStorage.getItem("loggedInUser"); if(balance[user]<amount) return showPopup("Insufficient balance."); balance[user]-=Number(amount); transactions[user].push("Load to "+number+" — ₱"+amount); saveAll(); showDashboard();}
+function bankTransfer(){let bank=prompt("Bank name:"); if(!bank) return; let acc=prompt("Account number:"); if(!acc) return; let amount=prompt("Amount:"); if(!amount||isNaN(amount)) return; let user=localStorage.getItem("loggedInUser"); if(balance[user]<amount) return showPopup("Insufficient balance."); balance[user]-=Number(amount); transactions[user].push("Bank Transfer to "+bank+" ("+acc+") — ₱"+amount); saveAll(); showDashboard();}
+function generateQR(){let amount=document.getElementById("qrAmount").value; if(!amount||isNaN(amount)) return showPopup("Please enter a valid amount."); let user=localStorage.getItem("loggedInUser"); if(balance[user]<amount) return showPopup("Insufficient balance."); balance[user]-=Number(amount); transactions[user].push("QR Payment — ₱"+amount); saveAll(); renderTransactions(); balanceText.textContent="₱"+balance[user].toFixed(2); document.getElementById("qrCode").innerHTML=""; new QRCode(document.getElementById("qrCode"),{text:`Pay ₱${amount} from ${user}`, width:180,height:180});}
+if(localStorage.getItem("loggedInUser")) showDashboard();
+</script>
+
+</body>
+</html>
